@@ -456,9 +456,31 @@ document.addEventListener("keydown",e=>{
   if(/^[0-9]$/.test(e.key))press(e.key);
   else if(e.key==="Backspace")press("del");
 });
+
+/* ---------- re-verrouillage après 15 min sans activité ---------- */
+const IDLE_MS=15*60*1000;
+let lastAct=Date.now(),lastSaved=0;
+function touch(){
+  lastAct=Date.now();
+  if(lastAct-lastSaved>1000){lastSaved=lastAct;try{sessionStorage.setItem("hds-last",String(lastAct))}catch(_){ }}
+}
+function relock(){
+  if(!lockEl.hidden)return;
+  PIN=null;code="";drawDots();lockMsg("");
+  entries={};months={};
+  try{sessionStorage.removeItem("hds-pin");sessionStorage.removeItem("hds-last")}catch(_){ }
+  document.body.classList.add("locked");lockEl.hidden=false;
+  renderAll();
+}
+function checkIdle(){if(!lockEl.hidden)return;if(Date.now()-lastAct>=IDLE_MS)relock()}
+["pointerdown","keydown","touchstart","scroll","input"].forEach(ev=>window.addEventListener(ev,touch,{passive:true,capture:true}));
+setInterval(checkIdle,10000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkIdle()});
+
 $("storeNote").textContent="";
-let saved=null;try{saved=sessionStorage.getItem("hds-pin")}catch(_){ }
-if(saved)tryCode(saved,true);
+let saved=null,savedAt=0;
+try{saved=sessionStorage.getItem("hds-pin");savedAt=Number(sessionStorage.getItem("hds-last"))||0}catch(_){ }
+if(saved&&Date.now()-savedAt<IDLE_MS){lastAct=Date.now();tryCode(saved,true)}
 </script>
 <script>(function(){var d=new Date();d.setDate(d.getDate()+1);if(d.getDate()!==1){var j=document.querySelector(".card.jar");if(j)j.style.display="none";}})();</script>
 </body>

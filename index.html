@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mes heures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F1FB;--card:#FFFFFF;--ink:#231942;--soft:#6B6385;--line:#E4DEF3;--pop:#FF5C8A;--pop-soft:#FFE3EC;--sun:#FFC93C;--sun-soft:#FFF4D6;--mint:#20B486;--mint-soft:#DDF6EC;--chip:#EFEAFB;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17132A;--card:#221C3B;--ink:#F3EFFF;--soft:#B3AACB;--line:#352D55;--pop:#FF7AA0;--pop-soft:#45203A;--sun:#FFD25E;--sun-soft:#3E3416;--mint:#44D3A3;--mint-soft:#163A30;--chip:#2D2650}}
+:root[data-theme="dark"]{--bg:#17132A;--card:#221C3B;--ink:#F3EFFF;--soft:#B3AACB;--line:#352D55;--pop:#FF7AA0;--pop-soft:#45203A;--sun:#FFD25E;--sun-soft:#3E3416;--mint:#44D3A3;--mint-soft:#163A30;--chip:#2D2650}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 Nunito,system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;font-weight:600}
+main{max-width:520px;margin:0 auto;padding:22px 16px 56px}
+h1{font-size:30px;font-weight:900;margin:0;letter-spacing:-.01em}
+.sub{color:var(--soft);margin:2px 0 18px}
+.card{background:var(--card);border-radius:24px;padding:20px;margin-bottom:16px;border:2px solid var(--line)}
+.card h2{font-size:19px;font-weight:800;margin:0 0 14px}
+.week{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.day{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:18px;padding:10px 0 8px;font:inherit;cursor:pointer;text-align:center;min-height:76px}
+.day b{display:block;font-size:13px;color:var(--soft);font-weight:800}
+.day span{display:block;font-size:16px;font-weight:900;margin-top:2px}
+.day.done{background:var(--mint-soft);border-color:var(--mint)}
+.day.done span{color:var(--mint)}
+.day.sel{border-color:var(--pop);box-shadow:0 0 0 3px var(--pop-soft)}
+.day.future{opacity:.45}
+.q{font-size:15px;color:var(--soft);margin:0 0 10px}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.chip{border:0;background:var(--chip);color:var(--ink);font:inherit;font-size:18px;font-weight:800;border-radius:16px;padding:14px 0;cursor:pointer;min-height:52px}
+.chip[aria-pressed="true"]{background:var(--pop);color:#fff}
+.link{border:0;background:none;color:var(--pop);font:inherit;font-weight:800;padding:6px 0;cursor:pointer}
+.card.jar{padding:20px 22px!important}.card.jar .bar{margin-left:0;margin-right:0}.times>div{min-width:0}.times input{width:100%;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;display:block}#chips,#toggleTimes{display:none!important}#times[hidden]{display:grid!important}.times{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 4px}
+label{display:block;font-size:14px;color:var(--soft);margin-bottom:4px}
+input{width:100%;font:inherit;color:var(--ink);background:var(--chip);border:2px solid transparent;border-radius:14px;padding:10px 12px;min-height:48px}
+input:focus,button:focus-visible{outline:3px solid var(--pop);outline-offset:2px}
+.result{display:flex;align-items:center;justify-content:space-between;background:var(--sun-soft);border-radius:18px;padding:14px 16px;margin:14px 0}
+.result .h{font-size:22px;font-weight:900}
+.result .e{font-size:28px;font-weight:900}
+.go{width:100%;border:0;border-radius:18px;padding:16px;font:inherit;font-size:19px;font-weight:900;cursor:pointer;background:var(--ink);color:var(--bg);min-height:56px}
+.go:disabled{opacity:.4;cursor:not-allowed}
+.err{color:var(--pop);font-size:15px;min-height:0;margin-top:8px}
+.toast{font-size:15px;color:var(--mint);margin-top:10px;min-height:22px;text-align:center}
+.jar{text-align:center;padding:6px 0 4px}
+.jar .big{font-size:56px;font-weight:900;line-height:1.05;letter-spacing:-.02em}
+.jar .meta{color:var(--soft)}
+.bar{height:14px;background:var(--chip);border-radius:99px;overflow:hidden;margin:16px 0 6px}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:99px;width:0;transition:width .6s ease}
+.monthbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.monthbar button{border:0;background:var(--chip);color:var(--ink);border-radius:14px;width:46px;height:46px;font:inherit;font-size:20px;font-weight:900;cursor:pointer}
+.monthbar strong{font-size:18px;font-weight:900;text-transform:capitalize}
+.pill{display:inline-block;font-size:14px;font-weight:800;padding:5px 12px;border-radius:99px}
+.p-open{background:var(--chip);color:var(--soft)}.p-paid{background:var(--mint-soft);color:var(--mint)}
+ul{list-style:none;margin:12px 0;padding:0}
+li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:2px dashed var(--line)}
+li:last-child{border-bottom:0}
+li .d{flex:1;min-width:0}
+li .d b{display:block;font-weight:800;text-transform:capitalize}
+li .d small{color:var(--soft);font-weight:600}
+li .m{text-align:right;font-weight:900}
+li .m small{display:block;color:var(--soft);font-weight:600}
+li .x{border:0;background:var(--chip);color:var(--soft);font-size:18px;width:36px;height:36px;border-radius:12px;cursor:pointer}
+li.wk{background:var(--chip);border-radius:12px;padding:8px 12px;margin-top:8px;border-bottom:0}
+li.wk .d b{font-size:14px;color:var(--soft)}
+li.wk .m{font-size:14px}
+.empty{display:block;color:var(--soft);text-align:center;padding:16px 0;border:0}
+.total{display:flex;justify-content:space-between;align-items:baseline;background:var(--ink);color:var(--bg);border-radius:18px;padding:14px 16px;margin-bottom:14px}
+.total b{font-size:26px;font-weight:900}
+.share{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.share a,.share button{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:18px;padding:12px 4px;font:inherit;font-size:15px;font-weight:800;text-decoration:none;cursor:pointer;min-height:68px;justify-content:center}
+.share .i{font-size:22px;line-height:1}
+.s-pdf{background:var(--pop-soft);color:var(--pop)}
+.s-wa{background:var(--mint-soft);color:var(--mint)}
+.s-sms{background:var(--sun-soft);color:var(--ink)}
+.share [aria-disabled="true"],.share :disabled{opacity:.4;pointer-events:none}
+.paid{width:100%;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:18px;padding:13px;font:inherit;font-weight:800;cursor:pointer;min-height:52px}
+.paid:disabled{opacity:.4;cursor:not-allowed}
+.name{margin-bottom:12px}
+.note{font-size:13px;color:var(--soft);text-align:center;margin-top:10px}
+.burst{position:fixed;pointer-events:none;font-size:26px;z-index:9;animation:fly 1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){.burst{display:none}.bar i{transition:none}}
+.wnav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.wnav button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer;min-height:40px}.wnav button:disabled{opacity:.35;cursor:not-allowed}.wnav span{font-size:13px;color:var(--soft);text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="hello">Salut 👋</h1>
+  <p class="sub" id="todayLine"></p>
+
+  <section class="card" aria-labelledby="t1">
+    <h2 id="t1">Ma semaine</h2>
+    <div class="wnav"><button type="button" id="wPrev" aria-label="Semaine précédente">‹ Avant</button><span id="wLabel"></span><button type="button" id="wNext" aria-label="Semaine suivante">Après ›</button></div><div class="week" id="week"></div>
+    <p class="q" id="qLine">Tes horaires aujourd'hui ?</p>
+    <div class="chips" id="chips"></div>
+    <button class="link" id="toggleTimes" type="button">J'ai mes horaires de début et de fin</button>
+    <div class="times" id="times" hidden>
+      <div><label for="debut">Début</label><input type="time" id="debut" value="16:30"></div>
+      <div><label for="fin">Fin</label><input type="time" id="fin" value="20:30"></div>
+    </div>
+    <div class="result"><span class="h" id="calcH">–</span><span class="e" id="calcE">–</span></div>
+    <button class="go" id="save" type="button">C'est noté ✓</button>
+    <div class="err" id="err" role="alert"></div>
+    <div class="toast" id="toast" aria-live="polite"></div>
+  </section>
+
+  <section class="card jar" aria-labelledby="t2">
+    <h2 id="t2" style="text-align:left">Ma tirelire du mois 🐷</h2>
+    <div class="big" id="jarE">0 €</div>
+    <div class="meta" id="jarMeta">0 h · 0 jour</div>
+    <div class="bar" aria-hidden="true"><i id="jarBar"></i></div>
+    <div class="meta" style="font-size:14px" id="jarHint"></div>
+  </section>
+
+  <section class="card" aria-labelledby="t3">
+    <h2 id="t3">Récap à envoyer</h2>
+    <div class="monthbar">
+      <button type="button" id="prev" aria-label="Mois précédent">‹</button>
+      <strong id="monthLabel"></strong>
+      <button type="button" id="next" aria-label="Mois suivant">›</button>
+    </div>
+    <span class="pill" id="pill"></span>
+    <ul id="list"></ul>
+    <div class="total"><span id="totH">0h00</span><b id="totE">0 €</b></div>
+    <div class="name" style="display:none"><label for="prenom">Ton prénom (affiché sur le PDF)</label><input id="prenom" autocomplete="given-name" placeholder="Ex. Léa"></div>
+    <div class="share">
+      <button class="s-pdf" id="pdf" type="button"><span class="i">📄</span>PDF</button>
+      <a class="s-wa" id="wa" target="_blank" rel="noopener"><span class="i">💬</span>WhatsApp</a>
+      <a class="s-sms" id="sms" target="_blank" rel="noopener"><span class="i">✉️</span>SMS</a>
+    </div>
+    <button class="paid" id="paid" type="button">C'est payé, on clôture le mois</button>
+    <div class="err" id="err2" role="alert"></div>
+    <p class="note" id="storeNote"></p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const RATE=12;
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseISO=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const fmtH=min=>Math.floor(min/60)+"h"+pad(Math.round(min%60));
+const fmtE=v=>v.toLocaleString("fr-FR",{style:"currency",currency:"EUR",minimumFractionDigits:v%1?2:0});
+const fmtE2=v=>v.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+const dayLabel=s=>parseISO(s).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+const hm=t=>t?t.replace(":","h"):"";
+
+let entries={},months={};
+let selDate=null,chipMin=null,useTimes=true;
+let cur=new Date();cur.setDate(1);
+
+/* ---------- stockage (n8n) ---------- */
+const LS="pointage-prenom";
+$("prenom").value="Sarah";
+const lsSave=()=>{try{localStorage.setItem(LS,$("prenom").value.trim())}catch(e){}};
+const SB="https://tcnkszeuuyqchthyzrgd.supabase.co/rest/v1";
+const KEY="sb_publishable_0wKa2k_q2OZaPjCPmjWgQg_lBHWCsIm";
+async function sb(path,opt={}){
+  const r=await fetch(SB+path,{...opt,headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",...(opt.headers||{})}});
+  if(!r.ok){let m="Erreur serveur";try{const j=await r.json();if(j.message)m=j.message}catch(_){ }throw new Error(m)}
+  return r.status===204?null:r.json().catch(()=>null);
+}
+async function load(){
+  const[en,mo]=await Promise.all([sb("/entries?select=date,minutes,montant,taux,debut,fin&order=date"),sb("/months?select=month,statut,paye_le")]);
+  entries={};(en||[]).forEach(e=>entries[e.date]={...e,montant:Number(e.montant)});
+  months={};(mo||[]).forEach(m=>months[m.month]=m);
+}
+async function putEntry(e){
+  await sb("/entries?on_conflict=date",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({date:e.date,minutes:e.minutes,montant:e.montant,taux:e.taux,debut:e.debut,fin:e.fin})});
+  await load();
+}
+async function removeEntry(d){await sb("/entries?date=eq."+d,{method:"DELETE"});await load()}
+async function putMonth(k){
+  await sb("/months?on_conflict=month",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({month:k,statut:"paye",paye_le:new Date().toISOString()})});
+  await load();
+}
+$("prenom").addEventListener("input",()=>{lsSave();renderHello();renderRecap()});
+
+/* ---------- semaine ---------- */
+let weekOff=0;
+function weekDays(){
+  const t=new Date();t.setHours(0,0,0,0);
+  const mon=new Date(t);const wd=(t.getDay()+6)%7;
+  mon.setDate(t.getDate()-wd+(wd>=4?7:0)+weekOff*7);
+  return[0,1,2,3].map(i=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d});
+}
+function defaultDay(){const d=new Date();while(d.getDay()===0||d.getDay()>=5)d.setDate(d.getDate()+1);return iso(d)}
+function renderWeek(){
+  {const ds=weekDays(),f=function(x){return x.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})};document.getElementById('wLabel').textContent=weekOff===0?'Cette semaine':'Du '+f(ds[0])+' au '+f(ds[3]);document.getElementById('wNext').disabled=weekOff>=0;document.getElementById('wPrev').onclick=function(){weekOff--;renderWeek()};document.getElementById('wNext').onclick=function(){if(weekOff<0){weekOff++;renderWeek()}};}
+  const today=iso(new Date());
+  $("week").innerHTML="";
+  weekDays().forEach(d=>{
+    const k=iso(d),e=entries[k],b=document.createElement("button");
+    b.type="button";
+    b.className="day"+(e?" done":"")+(k===selDate?" sel":"")+(k>today?" future":"");
+    b.innerHTML="<b>"+d.toLocaleDateString("fr-FR",{weekday:"short"}).replace(".","")+" "+d.getDate()+"</b><span>"+(e?fmtH(e.minutes):"·")+"</span>";
+    b.setAttribute("aria-label",dayLabel(k)+(e?", "+fmtH(e.minutes)+" saisies":", rien de saisi"));
+    if(k>today)b.disabled=true;
+    b.onclick=()=>selectDay(k);
+    $("week").appendChild(b);
+  });
+}
+function selectDay(k){
+  selDate=k;
+  const e=entries[k],today=iso(new Date());
+  $("qLine").textContent=k===today?"Tes horaires aujourd'hui ?":"Tes horaires "+dayLabel(k).replace(/^(\w+)/,"$1")+" ?";
+  if(e){
+    if(e.debut){useTimes=true;$("debut").value=e.debut;$("fin").value=e.fin;chipMin=null}
+    else{useTimes=true;chipMin=null}
+  }else{chipMin=null}
+  $("times").hidden=!useTimes;
+  $("toggleTimes").textContent=useTimes?"Je préfère choisir une durée":"J'ai mes horaires de début et de fin";
+  $("save").textContent=e?"Mettre à jour ✓":"C'est noté ✓";
+  $("toast").textContent="";$("err").textContent="";
+  renderChips();renderWeek();refreshCalc();
+}
+
+/* ---------- saisie ---------- */
+const CHIPS=[90,120,150,180,210,240];
+function renderChips(){
+  $("chips").innerHTML="";
+  CHIPS.forEach(m=>{
+    const c=document.createElement("button");c.type="button";c.className="chip";
+    c.textContent=fmtH(m).replace("h00","h");
+    c.setAttribute("aria-pressed",!useTimes&&chipMin===m);
+    c.onclick=()=>{useTimes=false;$("times").hidden=true;$("toggleTimes").textContent="J'ai mes horaires de début et de fin";chipMin=m;renderChips();refreshCalc()};
+    $("chips").appendChild(c);
+  });
+}
+$("toggleTimes").onclick=()=>{
+  useTimes=!useTimes;$("times").hidden=!useTimes;
+  $("toggleTimes").textContent=useTimes?"Je préfère choisir une durée":"J'ai mes horaires de début et de fin";
+  renderChips();refreshCalc();
+};
+["debut","fin"].forEach(id=>$(id).addEventListener("input",refreshCalc));
+function minutes(){
+  if(useTimes){
+    const a=$("debut").value,b=$("fin").value;if(!a||!b)return null;
+    const[ah,am]=a.split(":").map(Number),[bh,bm]=b.split(":").map(Number);
+    let m=(bh*60+bm)-(ah*60+am);if(m<=0)m+=1440;return m;
+  }
+  return chipMin;
+}
+function refreshCalc(){
+  $("err").textContent="";
+  const m=minutes();
+  $("calcH").textContent=m?fmtH(m):"Choisis une durée";
+  $("calcE").textContent=m?"= "+fmtE(Math.round(m/60*RATE*100)/100):"";
+}
+function burst(el){
+  const r=el.getBoundingClientRect(),em=["🎉","⭐","💶","✨","💪"];
+  for(let i=0;i<10;i++){
+    const s=document.createElement("span");s.className="burst";s.textContent=em[i%em.length];
+    s.style.left=(r.left+r.width/2)+"px";s.style.top=(r.top)+"px";
+    s.style.setProperty("--dx",(Math.random()*240-120)+"px");s.style.setProperty("--dy",(-80-Math.random()*120)+"px");s.style.setProperty("--r",(Math.random()*120-60)+"deg");
+    document.body.appendChild(s);setTimeout(()=>s.remove(),1100);
+  }
+}
+$("save").onclick=async()=>{
+  const m=minutes();
+  if(!m){$("err").textContent="Choisis une durée ou indique tes horaires.";return}
+  if(m>14*60){$("err").textContent="Plus de 14 h sur une journée : vérifie le début et la fin.";return}
+  if(months[selDate.slice(0,7)]?.statut==="paye"){$("err").textContent="Ce mois est déjà clôturé et payé.";return}
+  const e={date:selDate,minutes:m,montant:Math.round(m/60*RATE*100)/100,taux:RATE,debut:useTimes?$("debut").value:null,fin:useTimes?$("fin").value:null};
+  $("save").disabled=true;
+  try{
+    await putEntry(e);
+    $("toast").textContent="Bravo ! "+fmtH(m)+" de plus, soit "+fmtE(e.montant)+" dans la tirelire.";
+    burst($("save"));
+    const d=parseISO(selDate);cur=new Date(d.getFullYear(),d.getMonth(),1);
+    $("save").textContent="Mettre à jour ✓";
+    renderAll();
+  }catch(x){$("err").textContent=x.message==="Erreur serveur"?"Enregistrement impossible. Réessaie dans un instant.":x.message}
+  $("save").disabled=false;
+};
+
+/* ---------- tirelire + récap ---------- */
+const mk=()=>cur.getFullYear()+"-"+pad(cur.getMonth()+1);
+const monthList=k=>Object.values(entries).filter(e=>e.date.startsWith(k)).sort((a,b)=>a.date.localeCompare(b.date));
+const sums=l=>({m:l.reduce((s,e)=>s+e.minutes,0),e:Math.round(l.reduce((s,e)=>s+e.montant,0)*100)/100});
+function workdaysIn(y,mo){let n=0;const d=new Date(y,mo,1);while(d.getMonth()===mo){if(d.getDay()>=1&&d.getDay()<=4)n++;d.setDate(d.getDate()+1)}return n}
+function renderJar(){
+  const now=new Date(),k=now.getFullYear()+"-"+pad(now.getMonth()+1),l=monthList(k),s=sums(l);
+  $("jarE").textContent=fmtE(s.e);
+  $("jarMeta").textContent=fmtH(s.m)+" · "+l.length+" jour"+(l.length>1?"s":"");
+  const total=workdaysIn(now.getFullYear(),now.getMonth());
+  $("jarBar").style.width=Math.min(100,Math.round(l.length/total*100))+"%";
+  $("jarHint").textContent=l.length+" jour"+(l.length>1?"s":"")+" saisi"+(l.length>1?"s":"")+" sur "+total+" jours ouvrés ce mois-ci";
+}
+function recapText(k){
+  const l=monthList(k),s=sums(l),mois=parseISO(k+"-01").toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+  const p=$("prenom").value.trim();
+  return "Bonjour 🙂\n\nVoici mes heures de "+mois+" :\n\n"+
+    l.map(e=>"• "+dayLabel(e.date)+" : "+fmtH(e.minutes)+(e.debut?" ("+hm(e.debut)+"-"+hm(e.fin)+")":"")).join("\n")+
+    "\n\nTotal : "+fmtH(s.m)+" × "+RATE+" €/h = "+fmtE(s.e)+"\n\nMerci !"+(p?"\n"+p:"");
+}
+function renderRecap(){
+  const k=mk(),l=monthList(k),s=sums(l),st=(months[k]||{}).statut;
+  $("monthLabel").textContent=cur.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+  $("pill").textContent=st==="paye"?"✅ Payé":"En cours";
+  $("pill").className="pill "+(st==="paye"?"p-paid":"p-open");
+  $("list").innerHTML=l.length?"":'<li class="empty">Rien pour ce mois. Tape sur un jour de ta semaine pour commencer.</li>';
+  const mondayOf=s=>{const d=parseISO(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)};
+  const byWeek={};l.forEach(e=>{const w=mondayOf(e.date);(byWeek[w]=byWeek[w]||[]).push(e)});
+  let lastWeek=null;
+  l.forEach(e=>{
+    const w=mondayOf(e.date);
+    if(w!==lastWeek){
+      lastWeek=w;const ws=sums(byWeek[w]),wd=parseISO(w);
+      const h=document.createElement("li");h.className="wk";
+      h.innerHTML='<div class="d"><b></b></div><div class="m"></div>';
+      h.querySelector("b").textContent="Semaine du "+wd.toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+      h.querySelector(".m").textContent=fmtH(ws.m)+" · "+fmtE(ws.e);
+      $("list").appendChild(h);
+    }
+    const li=document.createElement("li");
+    li.innerHTML='<div class="d"><b></b><small></small></div><div class="m"></div>'+(st==="paye"?"":'<button class="x" type="button">×</button>');
+    li.querySelector("b").textContent=dayLabel(e.date);
+    li.querySelector("small").textContent=e.debut?hm(e.debut)+" – "+hm(e.fin):"Durée choisie";
+    li.querySelector(".m").innerHTML=fmtH(e.minutes)+"<small>"+fmtE(e.montant)+"</small>";
+    const x=li.querySelector(".x");
+    if(x){x.setAttribute("aria-label","Supprimer "+dayLabel(e.date));x.onclick=async()=>{if(confirm("Supprimer "+dayLabel(e.date)+" ?")){await removeEntry(e.date);renderAll()}}}
+    $("list").appendChild(li);
+  });
+  $("totH").textContent="Total · "+fmtH(s.m);
+  $("totE").textContent=fmtE(s.e);
+  const txt=encodeURIComponent(recapText(k)),off=!l.length;
+  $("wa").href=off?"#":"https://wa.me/?text="+txt;
+  $("sms").href=off?"#":"sms:?&body="+txt;
+  $("wa").setAttribute("aria-disabled",off);$("sms").setAttribute("aria-disabled",off);
+  $("pdf").disabled=off;
+  $("paid").disabled=off||st==="paye";
+}
+function renderHello(){const p=$("prenom").value.trim();$("hello").textContent="Salut"+(p?" "+p:"")+" 👋"}
+function renderAll(){renderWeek();renderJar();renderRecap()}
+$("prev").onclick=()=>{cur.setMonth(cur.getMonth()-1);renderRecap()};
+$("next").onclick=()=>{cur.setMonth(cur.getMonth()+1);renderRecap()};
+$("paid").onclick=async()=>{if(confirm("Le patron a bien payé ce mois ? Il sera clôturé.")){try{await putMonth(mk())}catch(x){$("err2").textContent=x.message;return}renderRecap();burst($("paid"))}};
+
+/* ---------- PDF ---------- */
+function buildPDF(k){
+  const{jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"});
+  const l=monthList(k),s=sums(l),mois=parseISO(k+"-01").toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+  const p=$("prenom").value.trim(),W=210,M=18;
+  doc.setFillColor(35,25,66);doc.rect(0,0,W,46,"F");
+  doc.setFillColor(255,201,60);doc.circle(W-28,14,22,"F");
+  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(24);
+  doc.text("Relevé d'heures",M,24);
+  doc.setFont("helvetica","normal");doc.setFontSize(13);
+  doc.text(mois.charAt(0).toUpperCase()+mois.slice(1)+(p?"  -  "+p:""),M,34);
+  let y=60;
+  doc.setTextColor(107,99,133);doc.setFontSize(10);doc.setFont("helvetica","bold");
+  doc.text("JOUR",M,y);doc.text("HORAIRES",95,y);doc.text("DURÉE",140,y);doc.text("MONTANT",W-M,y,{align:"right"});
+  y+=3;doc.setDrawColor(228,222,243);doc.setLineWidth(.4);doc.line(M,y,W-M,y);
+  doc.setFont("helvetica","normal");doc.setFontSize(11);
+  l.forEach((e,i)=>{
+    y+=9;
+    if(y>262){doc.addPage();y=24}
+    if(i%2===0){doc.setFillColor(244,241,251);doc.rect(M-2,y-6,W-2*M+4,9,"F")}
+    doc.setTextColor(35,25,66);
+    const lab=dayLabel(e.date);doc.text(lab.charAt(0).toUpperCase()+lab.slice(1),M,y);
+    doc.setTextColor(107,99,133);doc.text(e.debut?hm(e.debut)+" - "+hm(e.fin):"-",95,y);
+    doc.setTextColor(35,25,66);doc.text(fmtH(e.minutes),140,y);
+    doc.text(fmtE2(e.montant),W-M,y,{align:"right"});
+  });
+  y+=14;if(y>250){doc.addPage();y=30}
+  doc.setFillColor(255,92,138);doc.roundedRect(M,y,W-2*M,26,4,4,"F");
+  doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont("helvetica","normal");
+  doc.text(l.length+" jours  -  "+fmtH(s.m)+"  x  "+RATE+" €/h",M+8,y+11);
+  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text("TOTAL À RÉGLER",M+8,y+19);
+  doc.setFontSize(22);doc.text(fmtE2(s.e),W-M-8,y+17,{align:"right"});
+  doc.setTextColor(107,99,133);doc.setFont("helvetica","normal");doc.setFontSize(9);
+  doc.text("Document généré le "+new Date().toLocaleDateString("fr-FR"),M,288);
+  return doc;
+}
+$("pdf").onclick=async()=>{
+  $("err2").textContent="";
+  const k=mk(),blob=buildPDF(k).output("blob"),name="heures-"+k+".pdf";
+  if(navigator.canShare&&navigator.canShare({files:[new File([blob],name,{type:"application/pdf"})]})){
+    try{await navigator.share({files:[new File([blob],name,{type:"application/pdf"})],title:"Mes heures"});return}catch(e){if(e.name==="AbortError")return}
+  }
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+};
+
+/* ---------- démarrage ---------- */
+$("todayLine").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase())+" · "+RATE+" € de l'heure";
+renderHello();selectDay(defaultDay());renderAll();
+$("storeNote").textContent="Chargement…";
+load().then(()=>{
+  $("storeNote").textContent="Tes heures sont enregistrées en ligne.";
+  selectDay(selDate);renderAll();
+}).catch(()=>{$("storeNote").textContent="Impossible de charger tes heures. Recharge la page."});
+</script>
+<script>(function(){var d=new Date();d.setDate(d.getDate()+1);if(d.getDate()!==1){var j=document.querySelector(".card.jar");if(j)j.style.display="none";}})();</script>
+</body>
+</html>

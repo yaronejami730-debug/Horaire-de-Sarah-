@@ -63,6 +63,15 @@ li .m{text-align:right;font-weight:900}
 li .m small{display:block;color:var(--soft);font-weight:600}
 li .x{border:0;background:var(--chip);color:var(--soft);font-size:18px;width:36px;height:36px;border-radius:12px;cursor:pointer}
 body.locked main{visibility:hidden}
+.wa-m{position:fixed;inset:0;z-index:90;background:rgba(35,25,66,.55);display:none;align-items:center;justify-content:center;padding:16px}
+.wa-m.on{display:flex}
+.wa-m .box{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:380px}
+.wa-m h3{margin:0 0 4px;font-size:20px}
+.wa-m p{margin:0 0 14px;color:var(--soft);font-size:15px}
+.wa-m .row{margin-bottom:12px}
+.wa-m .btns{display:flex;gap:10px;margin-top:6px}
+.wa-m .btns button{flex:1;border:0;border-radius:16px;padding:14px;font:inherit;font-weight:900;cursor:pointer;min-height:52px}
+.wa-m .ok{background:var(--ink);color:var(--bg)}.wa-m .no{background:var(--chip);color:var(--ink)}
 .lock{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
 .lock[hidden]{display:none}
 .lockbox{width:100%;max-width:320px;text-align:center}
@@ -166,6 +175,16 @@ li.wk .m{font-size:14px}
   </section>
 </main>
 
+<div class="wa-m" id="waM" role="dialog" aria-modal="true" aria-labelledby="waT">
+  <div class="box">
+    <h3 id="waT">Quels jours envoyer ?</h3>
+    <p>Choisis la première et la dernière date à envoyer.</p>
+    <div class="row"><label for="waFrom">À partir du</label><input type="date" id="waFrom"></div>
+    <div class="row"><label for="waTo">Jusqu'au</label><input type="date" id="waTo"></div>
+    <div class="err" id="waErr" role="alert"></div>
+    <div class="btns"><button type="button" class="no" id="waNo">Annuler</button><button type="button" class="ok" id="waOk">Envoyer</button></div>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const RATE=12;
@@ -310,6 +329,9 @@ $("save").onclick=async()=>{
 
 /* ---------- tirelire + récap ---------- */
 const mk=()=>cur.getFullYear()+"-"+pad(cur.getMonth()+1);
+const rangeList=(f,t)=>Object.values(entries).filter(e=>e.date>=f&&e.date<=t).sort((a,b)=>a.date.localeCompare(b.date));
+const fmtD=(d,y)=>parseISO(d).toLocaleDateString("fr-FR",y?{day:"numeric",month:"long",year:"numeric"}:{day:"numeric",month:"long"});
+const rangeLabel=(f,t)=>"du "+fmtD(f)+" au "+fmtD(t,1);
 const monthList=k=>Object.values(entries).filter(e=>e.date.startsWith(k)).sort((a,b)=>a.date.localeCompare(b.date));
 const sums=l=>({m:l.reduce((s,e)=>s+e.minutes,0),e:Math.round(l.reduce((s,e)=>s+e.montant,0)*100)/100});
 function workdaysIn(y,mo){let n=0;const d=new Date(y,mo,1);while(d.getMonth()===mo){if(d.getDay()>=1&&d.getDay()<=4)n++;d.setDate(d.getDate()+1)}return n}
@@ -321,10 +343,10 @@ function renderJar(){
   $("jarBar").style.width=Math.min(100,Math.round(l.length/total*100))+"%";
   $("jarHint").textContent=l.length+" jour"+(l.length>1?"s":"")+" saisi"+(l.length>1?"s":"")+" sur "+total+" jours ouvrés ce mois-ci";
 }
-function recapText(k){
-  const l=monthList(k),s=sums(l),mois=parseISO(k+"-01").toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+function recapText(from,to){
+  const l=rangeList(from,to),s=sums(l);
   const p=$("prenom").value.trim();
-  return "Bonjour 🙂\n\nVoici mes heures de "+mois+" :\n\n"+
+  return "Bonjour 🙂\n\nVoici mes heures "+rangeLabel(from,to)+" :\n\n"+
     l.map(e=>"• "+dayLabel(e.date)+" : "+fmtH(e.minutes)+(e.debut?" ("+hm(e.debut)+"-"+hm(e.fin)+")":"")).join("\n")+
     "\n\nTotal : "+fmtH(s.m)+" × "+RATE+" €/h = "+fmtE(s.e)+"\n\nMerci !"+(p?"\n"+p:"");
 }
@@ -358,13 +380,32 @@ function renderRecap(){
   });
   $("totH").textContent="Total · "+fmtH(s.m);
   $("totE").textContent=fmtE(s.e);
-  const txt=encodeURIComponent(recapText(k)),off=!l.length;
-  $("wa").href=off?"#":"https://wa.me/?text="+txt;
-  $("sms").href=off?"#":"sms:?&body="+txt;
+  const off=!l.length;
+  $("wa").href="#";
+  $("sms").href="#";
   $("wa").setAttribute("aria-disabled",off);$("sms").setAttribute("aria-disabled",off);
   $("pdf").disabled=off;
   $("paid").disabled=off||st==="paye";
 }
+let rangeGo=null;
+function askRange(go){
+  const l=monthList(mk());if(!l.length)return;
+  $("waFrom").value=l[0].date;$("waTo").value=l[l.length-1].date;
+  $("waErr").textContent="";rangeGo=go;$("waM").classList.add("on");
+}
+$("wa").onclick=ev=>{ev.preventDefault();if($("wa").getAttribute("aria-disabled")==="true")return;
+  askRange((f,t)=>window.open("https://wa.me/?text="+encodeURIComponent(recapText(f,t)),"_blank","noopener"))};
+$("sms").onclick=ev=>{ev.preventDefault();if($("sms").getAttribute("aria-disabled")==="true")return;
+  askRange((f,t)=>{location.href="sms:?&body="+encodeURIComponent(recapText(f,t))})};
+$("pdf").onclick=()=>askRange(sharePDF);
+$("waNo").onclick=()=>$("waM").classList.remove("on");
+$("waOk").onclick=()=>{
+  const f=$("waFrom").value,t=$("waTo").value;
+  if(!f||!t){$("waErr").textContent="Choisis les deux dates.";return}
+  if(f>t){$("waErr").textContent="La première date doit être avant la dernière.";return}
+  if(!rangeList(f,t).length){$("waErr").textContent="Aucun jour saisi entre ces dates.";return}
+  $("waM").classList.remove("on");rangeGo(f,t);
+};
 function renderHello(){const p=$("prenom").value.trim();$("hello").textContent="Salut"+(p?" "+p:"")+" 👋"}
 function renderAll(){renderWeek();renderJar();renderRecap()}
 $("prev").onclick=()=>{cur.setMonth(cur.getMonth()-1);renderRecap()};
@@ -372,9 +413,9 @@ $("next").onclick=()=>{cur.setMonth(cur.getMonth()+1);renderRecap()};
 $("paid").onclick=async()=>{if(confirm("Le patron a bien payé ce mois ? Il sera clôturé.")){try{await putMonth(mk())}catch(x){$("err2").textContent=x.message;return}renderRecap();burst($("paid"))}};
 
 /* ---------- PDF ---------- */
-function buildPDF(k){
+function buildPDF(f,t){
   const{jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"});
-  const l=monthList(k),s=sums(l),mois=parseISO(k+"-01").toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+  const l=rangeList(f,t),s=sums(l),mois=rangeLabel(f,t);
   const p=$("prenom").value.trim(),W=210,M=18;
   doc.setFillColor(35,25,66);doc.rect(0,0,W,46,"F");
   doc.setFillColor(255,201,60);doc.circle(W-28,14,22,"F");
@@ -407,15 +448,15 @@ function buildPDF(k){
   doc.text("Document généré le "+new Date().toLocaleDateString("fr-FR"),M,288);
   return doc;
 }
-$("pdf").onclick=async()=>{
+async function sharePDF(f,t){
   $("err2").textContent="";
-  const k=mk(),blob=buildPDF(k).output("blob"),name="heures-"+k+".pdf";
+  const blob=buildPDF(f,t).output("blob"),name="heures-"+f+"_"+t+".pdf";
   if(navigator.canShare&&navigator.canShare({files:[new File([blob],name,{type:"application/pdf"})]})){
     try{await navigator.share({files:[new File([blob],name,{type:"application/pdf"})],title:"Mes heures"});return}catch(e){if(e.name==="AbortError")return}
   }
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
-};
+}
 
 /* ---------- démarrage ---------- */
 $("todayLine").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase())+" · "+RATE+" € de l'heure";
